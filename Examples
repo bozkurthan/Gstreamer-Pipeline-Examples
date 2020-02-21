@@ -1,0 +1,21 @@
+This is for specific windows screen to QGC.
+gst-launch-1.0 ximagesrc xid=SEEDescription ! video/x-raw,framerate=30/1 ! videoscale method=0 ! videoconvert ! video/x-raw,width=1920,height=1080,format=I420 ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5000
+
+SEEDescription=xwininfo -display :1
+
+Use command for find specific window id.
+Addinitional info can be found
+https://gstreamer.freedesktop.org/documentation/ximagesrc/index.html?gi-language=c
+
+WINDOWS GSTREAMER SPECIFIC WINDOW ID SENDER
+
+gst-launch-1.0 -v ximagesrc xid=0x6000005 ! video/x-raw,framerate=60/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=50000 speed-preset=superfast ! rtph264pay ! udpsink host=127.0.0.1 port=5000
+
+WINDOWS GSTREAMER SPECIFIC WINDOW ID RX
+gst-launch-1.0 -v udpsrc port=5000 caps = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96" ! rtph264depay ! decodebin ! videoconvert ! autovideosink 
+
+QGC Sender
+gst-launch-1.0 videotestsrc ! video/x-raw,width=640,height=480 ! videoconvert ! x264enc ! rtph264pay ! udpsink host=127.0.0.1 port=5600
+
+QGC Receiver
+gst-launch-1.0 udpsrc port=5600 caps='application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264' ! rtph264depay ! h264parse ! avdec_h264 ! autovideosink fps-update-interval=1000 sync=false
